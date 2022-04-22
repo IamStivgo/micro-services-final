@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: configuration-service
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/IamStivgo/config-service-final.git
+        #native:
+          #search-locations: classpath:/config
+  #profiles:
+    #active: native
+
+server:
+  port: 8888

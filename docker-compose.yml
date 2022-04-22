@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  movie-db:
+    image: mysql:latest
+    container_name: 'movie-db'
+    ports:
+      - '3307:3306'
+    environment:
+      - MYSQL_DATABASE=movie_database
+      - MYSQL_ROOT_PASSWORD=p4ssw0rd
+  serie-db:
+    image: mongo
+    container_name: 'serie-db'
+    ports:
+      - '27017:27017'
+  catalog-db:
+    image: mongo
+    container_name: 'catalog-db'
+    ports:
+      - '27018:27017'
+  zipkin:
+    image: openzipkin/zipkin:2
+    container_name: 'zipkin'
+    ports:
+      - '9411:9411'
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: 'rabbitmq'
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+  configuration-service:
+     build: configuration-service
+     container_name: 'configuration-service'
+     ports:
+       - '8888:8888'
+  service-registry:
+     build: service-registry
+     container_name: 'service-registry'
+     ports:
+       - '8761:8761'
+     depends_on:
+       - configuration-service
+     restart: on-failure
+  movie-service:
+   build: movie-service
+   container_name: 'movie-service'
+   ports:
+     - '8061:8061'
+   depends_on:
+     - configuration-service
+     - service-registry
+   restart: on-failure
+  serie-service:
+    build: serie-service
+    container_name: 'serie-service'
+    ports:
+      - '8065:8065'
+    depends_on:
+      - configuration-service
+      - service-registry
+    restart: on-failure
+  catalog-service:
+    build: catalog-service
+    container_name: 'catalog-service'
+    ports:
+      - '8071:8071'
+    depends_on:
+      - configuration-service
+      - service-registry
+      - serie-service
+      - movie-service
+    restart: on-failure
+  gateway-service:
+    build: gateway-service
+    container_name: 'gateway-service'
+    ports:
+      - '8080:8080'
+    depends_on:
+      - configuration-service
+      - catalog-service
+    restart: on-failure
